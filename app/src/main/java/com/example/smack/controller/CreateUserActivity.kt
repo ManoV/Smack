@@ -1,10 +1,14 @@
-package com.example.smack
+package com.example.smack.controller
 
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import com.example.smack.R.layout
+import com.example.smack.services.AuthService
 import kotlinx.android.synthetic.main.activity_create_user.createAvatarImageView
+import kotlinx.android.synthetic.main.activity_create_user.createEmailTxt
+import kotlinx.android.synthetic.main.activity_create_user.createPasswordTxt
 import java.util.Random
 
 class CreateUserActivity : AppCompatActivity() {
@@ -14,11 +18,23 @@ class CreateUserActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_create_user)
+        setContentView(layout.activity_create_user)
     }
 
     fun createUserBtnClicked(view: View) {
-
+        val email = createEmailTxt.text.toString()
+        val password = createPasswordTxt.text.toString()
+        AuthService.registerUser(this, email, password) { registerSuccess ->
+            println("Registration status: $registerSuccess")
+            if (registerSuccess) {
+                AuthService.loginUser(this, email, password) { loginSuccess ->
+                    if (loginSuccess) {
+                        println(" Login User: ${AuthService.userEmail}")
+                        println(" Login Token: ${AuthService.authToken}")
+                    }
+                }
+            }
+        }
     }
 
     fun generateColorBtnClicked(view: View) {
