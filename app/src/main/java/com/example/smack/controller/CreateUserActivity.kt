@@ -9,6 +9,7 @@ import com.example.smack.services.AuthService
 import kotlinx.android.synthetic.main.activity_create_user.createAvatarImageView
 import kotlinx.android.synthetic.main.activity_create_user.createEmailTxt
 import kotlinx.android.synthetic.main.activity_create_user.createPasswordTxt
+import kotlinx.android.synthetic.main.activity_create_user.createUserNameTxt
 import java.util.Random
 
 class CreateUserActivity : AppCompatActivity() {
@@ -22,15 +23,19 @@ class CreateUserActivity : AppCompatActivity() {
     }
 
     fun createUserBtnClicked(view: View) {
+        val userName = createUserNameTxt.text.toString()
         val email = createEmailTxt.text.toString()
         val password = createPasswordTxt.text.toString()
         AuthService.registerUser(this, email, password) { registerSuccess ->
             println("Registration status: $registerSuccess")
             if (registerSuccess) {
                 AuthService.loginUser(this, email, password) { loginSuccess ->
+                    println("Login Status: $loginSuccess")
                     if (loginSuccess) {
-                        println(" Login User: ${AuthService.userEmail}")
-                        println(" Login Token: ${AuthService.authToken}")
+                        AuthService.createUser(this, userName, email, createAvatar, avatarColor) { addUserSuccess ->
+                            println("Add User status : $addUserSuccess")
+                            finish()
+                        }
                     }
                 }
             }
