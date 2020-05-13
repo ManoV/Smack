@@ -9,7 +9,9 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import android.view.View
+import android.widget.EditText
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.GravityCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.smack.R
@@ -86,6 +88,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun addChannelClicked(view: View) {
+        if (AuthService.isLoggedIn) {
+            val builder = AlertDialog.Builder(this)
+            val dialogView = layoutInflater.inflate(R.layout.add_channel_dialog, null)
+
+            builder.setView(dialogView)
+                .setPositiveButton("Add") { dialogInterface, i ->
+
+                    val channelNameTextField = dialogView.findViewById<EditText>(R.id.addChannelNameTxt)
+                    val channelDescTextField = dialogView.findViewById<EditText>(R.id.addChannelDescTxt)
+
+                    val channelName = channelNameTextField.text.toString()
+                    val channelDesc = channelDescTextField.text.toString()
+                }
+                .setNegativeButton("Cancel") { dialogInterface, i ->
+
+                }
+                .show()
+        }
 
     }
 
