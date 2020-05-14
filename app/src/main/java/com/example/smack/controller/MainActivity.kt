@@ -18,9 +18,14 @@ import com.example.smack.R
 import com.example.smack.R.id
 import com.example.smack.R.layout
 import com.example.smack.R.string
+import com.example.smack.model.Channel
 import com.example.smack.services.AuthService
+import com.example.smack.services.MessageService
 import com.example.smack.services.UserDataService
 import com.example.smack.utilities.BROADCAST_USER_DATA_CHANGE
+import com.example.smack.utilities.SOCKET_URL
+import com.github.nkzawa.emitter.Emitter
+import com.github.nkzawa.socketio.client.IO
 import kotlinx.android.synthetic.main.activity_main.drawer_layout
 import kotlinx.android.synthetic.main.nav_header_main.loginBtnNavHeader
 import kotlinx.android.synthetic.main.nav_header_main.userEmailNavHeader
@@ -29,7 +34,10 @@ import kotlinx.android.synthetic.main.nav_header_main.userNameNavHeader
 
 class MainActivity : AppCompatActivity() {
 
+    val socket = IO.socket(SOCKET_URL)
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        println("ACTIVITY on create")
         super.onCreate(savedInstanceState)
         setContentView(layout.activity_main)
         val toolbar: Toolbar = findViewById(id.toolbar)
@@ -41,10 +49,24 @@ class MainActivity : AppCompatActivity() {
         )
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
+        socket.connect()
+        socket.on("channelCreated", onNewChannel)
+    }
 
+    override fun onResume() {
+        println("ACTIVITY on resume")
         LocalBroadcastManager.getInstance(this).registerReceiver(userDataChangeReceiver,
             IntentFilter(BROADCAST_USER_DATA_CHANGE)
         )
+
+        super.onResume()
+    }
+
+    override fun onDestroy() {
+        println("ACTIVITY on destroy")
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(userDataChangeReceiver)
+        socket.disconnect()
+        super.onDestroy()
     }
 
     private val userDataChangeReceiver = object : BroadcastReceiver() {
@@ -100,11 +122,29 @@ class MainActivity : AppCompatActivity() {
 
                     val channelName = channelNameTextField.text.toString()
                     val channelDesc = channelDescTextField.text.toString()
+
+                    socket.emit("newChannel", channelName, channelDesc)
                 }
                 .setNegativeButton("Cancel") { dialogInterface, i ->
 
                 }
                 .show()
+        }
+
+    }
+
+    private val onNewChannel = Emitter.Listener { args ->
+        runOnUiThread {
+            val channelName = args[0] as String
+            val channelDesc = args[1] as String
+            val channelId = args[2] as String
+            println("Channel Name : $channelName")
+            println("Channel DEscription : $channelDesc")
+            println("Channel Id : $channelId")
+
+            val newChannel = Channel(channelName, channelDesc, channelId)
+
+            MessageService.channels.add(newChannel)
         }
 
     }
